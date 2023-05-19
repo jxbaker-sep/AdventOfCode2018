@@ -1,33 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AdventOfCode2022.Utils;
+using AdventOfCode2018.Utils;
 using JetBrains.Annotations;
+using TypeParser;
 
-namespace AdventOfCode2022.Days.Day01;
+namespace AdventOfCode2018.Days.Day01;
 
 [UsedImplicitly]
-public class Day01 : AdventOfCode<long,List<List<long>>>
+public class Day01 : AdventOfCode<long, IReadOnlyList<long>>
 {
-    public override List<List<long>> Parse(string input) => 
-        input
-            .Paragraphs()
-            .Select(group => group.Select(line => Convert.ToInt64(line)).ToList()).ToList();
+    public override IReadOnlyList<long> Parse(string input) => input
+        .Lines().Select(line => Convert.ToInt64(line)).ToList();
 
-    [TestCase(Input.Example, 24000)]
-    [TestCase(Input.File, 66616)]
-    public override long Part1(List<List<long>> input)
+    // [TestCase(Input.Example, 24000)]
+    [TestCase(Input.File, 513)]
+    public override long Part1(IReadOnlyList<long> input)
     {
-        return input.Select(group=> group.Sum()).Max();
+        return input.Sum();
     }
 
-    [TestCase(Input.Example, 45000)]
-    [TestCase(Input.File, 199172)]
-    public override long Part2(List<List<long>> input)
+    // [TestCase(Input.Example, 45000)]
+    [TestCase(Input.File, 287)]
+    public override long Part2(IReadOnlyList<long> input)
     {
-        return input.Select(group=> group.Sum())
-            .OrderByDescending(it => it)
-            .Take(3)
-            .Sum();
+        var current = 0L;
+        var seen = new HashSet<long>();
+        while (true)
+        {
+            foreach (var item in input)
+            {
+                current += item;
+                if (!seen.Add(current))
+                {
+                    return current;
+                }
+            }
+        }
     }
 }

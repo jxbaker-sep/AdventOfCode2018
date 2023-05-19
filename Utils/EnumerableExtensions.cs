@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TypeParser;
 
-namespace AdventOfCode2022.Utils;
+namespace AdventOfCode2018.Utils;
 public static class EnumerableExtensions
 {
     public static IEnumerable<List<T>> InGroupsOf<T>(this IEnumerable<T> self, int n)
@@ -175,6 +175,10 @@ public static class EnumerableExtensions
     public static List<string> Lines(this string input) =>
         input.Split("\n")
             .Select(it => it.Trim()).ToList();
+
+    public static List<T> Lines<T>(this string input, Func<string, T> func) =>
+        input.Lines()
+            .Select(it => func(it)).ToList();
 
     public static bool ContainsAll<T>(this IEnumerable<T> first, IEnumerable<T> other)
     {

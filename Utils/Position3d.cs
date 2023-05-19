@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AdventOfCode2022.Utils
+namespace AdventOfCode2018.Utils
 {
     public class Position3d
     {

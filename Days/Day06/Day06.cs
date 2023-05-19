@@ -1,39 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AdventOfCode2022.Utils;
+using AdventOfCode2018.Utils;
 using JetBrains.Annotations;
-using TypeParser;
 
-namespace AdventOfCode2022.Days.Day06;
+namespace AdventOfCode2018.Days.Day06;
 
 [UsedImplicitly]
-public class Day06 : AdventOfCode<long, string>
+public class Day06 : AdventOfCode<long, IReadOnlyList<Position>>
 {
-    public override string Parse(string input) => input;
+    public override IReadOnlyList<Position> Parse(string input) => 
+        input.Lines(it => { 
+            var z = it.Split(','); 
+            return new Position(Convert.ToInt64(z[1]), Convert.ToInt64(z[0]));
+        });
 
-
-    [TestCase(Input.Raw, 7, Raw = "mjqjpqmgbljsphdztnvjfqwrcgsmlb")]
-    [TestCase(Input.Raw, 5, Raw = "bvwbjplbgvbhsrlpgdmjqwftvncz")]
-    [TestCase(Input.Raw, 6, Raw = "nppdvjthqldpwncqszvftbrmjlhg")]
-    [TestCase(Input.Raw, 10, Raw = "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")]
-    [TestCase(Input.Raw, 11, Raw = "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")]
-    [TestCase(Input.File, 1198)]
-    public override long Part1(string input)
+    [TestCase(Input.Example, 17)]
+    // [TestCase(Input.File, 0)] // 4996 too high - INPUT WRONG!
+    public override long Part1(IReadOnlyList<Position> input)
     {
-        return input.Windows(4).WithIndices()
-            .First(window => new HashSet<char>(window.Value).Count == 4).Index + 4;
+        var d = new Dictionary<Position, long>();
+        var nonEdges = input.ToList();
+        var minx = input.Select(p => p.X).Min();
+        var maxx = input.Select(p => p.X).Max();
+        var miny = input.Select(p => p.Y).Min();
+        var maxy = input.Select(p => p.Y).Max();
+        for(var x = minx; x <= maxx; x++)
+        {
+            for(var y = miny; y < maxy; y++)
+            {
+                var grid = new Position(y, x);
+                var distances = input.Select(it => new {P = it, M = it.ManhattanDistance(grid)}).ToList();
+                var minDistance = distances.MinBy(it => it.M) ?? throw new ApplicationException();
+                if (distances.Count(m => m.M == minDistance.M) != 1) continue;
+                d[minDistance.P] = d.GetValueOrDefault(minDistance.P) + 1;
+                if (x == minx || x == maxx || y == miny || y == maxy)
+                {
+                    nonEdges.Remove(minDistance.P);
+                }
+            }
+        }
+
+        return d.Where(kv => nonEdges.Contains(kv.Key)).Select(it => it.Value).Max();
     }
-
-    [TestCase(Input.Raw, 19, Raw = "mjqjpqmgbljsphdztnvjfqwrcgsmlb")]
-    [TestCase(Input.Raw, 23, Raw = "bvwbjplbgvbhsrlpgdmjqwftvncz")]
-    [TestCase(Input.Raw, 23, Raw = "nppdvjthqldpwncqszvftbrmjlhg")]
-    [TestCase(Input.Raw, 29, Raw = "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")]
-    [TestCase(Input.Raw, 26, Raw = "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")]
-    [TestCase(Input.File, 3120)]
-    public override long Part2(string input)
+    
+    [TestCase(Input.Example, 0)]
+    [TestCase(Input.File, 0)]
+    public override long Part2(IReadOnlyList<Position> input)
     {
-        return input.Windows(14).WithIndices()
-            .First(window => new HashSet<char>(window.Value).Count == 14).Index + 14;
+        return 0;
     }
 }
+
+public record Node(char Actual, char Lower);

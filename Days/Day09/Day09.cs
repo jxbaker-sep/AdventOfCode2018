@@ -1,75 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AdventOfCode2022.Utils;
+using System.Text.RegularExpressions;
+using AdventOfCode2018.Utils;
 using JetBrains.Annotations;
-using TypeParser;
 
-namespace AdventOfCode2022.Days.Day09;
+namespace AdventOfCode2018.Days.Day09;
 
 [UsedImplicitly]
-public class Day09 : AdventOfCode<long, IReadOnlyList<Vector>>
+public class Day09 : AdventOfCode<long, GameSettings>
 {
-    public override IReadOnlyList<Vector> Parse(string input) => input.Lines().Select(line => 
-        line[0] switch
-        {
-            'D' => Vector.South,
-            'U' => Vector.North,
-            'L' => Vector.West,
-            'R' => Vector.East,
-            _ => throw new ApplicationException()
-        } * Convert.ToInt32(line.Substring(2))
-    ).ToList();
+    public override GameSettings Parse(string input) => 
+        input.Lines().Select(it => {
+            var m = Regex.Match(it, @"(?<players>\d+)[^0-9]+(?<points>\d+)");
+            return new GameSettings(m.LongGroup("players"), m.LongGroup("points"));
+        }).Single();
 
-
-    [TestCase(Input.Example, 13)]
-    [TestCase(Input.File, 5878)]
-    public override long Part1(IReadOnlyList<Vector> input)
+    [TestCase(Input.Raw, 32, Raw = "9 25")]
+    [TestCase(Input.Raw, 8317, Raw = "10 1618")]
+    [TestCase(Input.Raw, 146373, Raw = "13 7999")]
+    [TestCase(Input.Raw, 2764, Raw = "17 1104")]
+    [TestCase(Input.Raw, 54718, Raw = "21 6111")]
+    [TestCase(Input.Raw, 37305, Raw = "30 5807")]
+    [TestCase(Input.File, 393229)] 
+    public override long Part1(GameSettings settings)
     {
-        return Snake(2, input);
+        return PlayGame(settings);
     }
 
-    [TestCase(Input.Example, 1)]
-    [TestCase(Input.Raw, 36, Raw = Example2)]
-    [TestCase(Input.File, 2405)]
-    public override long Part2(IReadOnlyList<Vector> input)
+    // [TestCase(Input.Example, 0)]
+    [TestCase(Input.File, 3273405195L)]
+    public override long Part2(GameSettings settings)
     {
-        return Snake(10, input);
+        return PlayGame(settings with { LastMarble = settings.LastMarble * 100 });
     }
 
-    private long Snake(int snakeLength, IReadOnlyList<Vector> input)
+    private static long PlayGame(GameSettings settings)
     {
-        var rope = Enumerable.Range(0, snakeLength).Select(_ => new Position(0,0)).ToList();
-        var visited = new HashSet<Position>{rope.Last()};
-        foreach(var vector in input)
+        var l = new LinkedList<long>();
+        l.AddFirst(0);
+        var current = l.First ?? throw new ApplicationException();
+        var player = 0L;
+        var scores = Enumerable.Repeat(0L, (int)settings.Players).ToArray();
+        foreach (var marble in Enumerable.Range(1, (int)settings.LastMarble))
         {
-            foreach(var _ in Enumerable.Range(0, (int)vector.Magnitude))
+            player = (player + 1) % settings.Players;
+            if (marble % 23 == 0)
             {
-                rope = MoveRope(rope, vector.Unit);
-                visited.Add(rope.Last());
+                scores[player] += marble;
+                var temp = current.RollBack(7);
+                scores[player] += temp.Value;
+                current = temp.RollForward(1);
+                l.Remove(temp);
             }
+            else
+            {
+                var newNode = new LinkedListNode<long>(marble);
+                l.AddAfter(current.RollForward(1), newNode);
+                current = newNode;
+            }
+            // Console.WriteLine(l.Select(t => $"{t}").Join(" "));
         }
-        return visited.Count;
+        return scores.Max();
     }
 
-    List<Position> MoveRope(IReadOnlyList<Position> rope, Vector v)
-    {
-        var result = new List<Position>{rope[0] + v};
-        foreach (var tail in rope.Skip(1))
-        {
-            var head = result.Last();
-
-            result.Add(tail + (head.OrthoganallyOrDiagonallyAdjacent(tail) ? Vector.Zero : (head - tail).Unit));
-        }
-        return result;
-    }
-
-    const string Example2 = @"R 5
-U 8
-L 8
-D 3
-R 17
-D 10
-L 25
-U 20";
 }
+
+public record GameSettings(long Players, long LastMarble);

@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using AdventOfCode2022.Utils;
+using AdventOfCode2018.Utils;
 using JetBrains.Annotations;
 
 namespace TypeParser

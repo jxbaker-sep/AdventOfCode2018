@@ -2,17 +2,17 @@
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using AdventOfCode2022.Days.Day01;
-using AdventOfCode2022.Utils;
+using AdventOfCode2018.Days.Day01;
+using AdventOfCode2018.Utils;
 using TypeParser;
 
-namespace AdventOfCode2022
+namespace AdventOfCode2018
 {
     class Program
     {
         static void Main(string[] args)
         {
-            var regression = args.Contains("--regression") || args.Contains("--r");
+            var regression = args.Contains("--regression") || args.Contains("--r") || args.Contains("-r");
 
             int? dayNumber = args.Count() == 1 && Regex.Match(args[0], @"\d+").Success ? Convert.ToInt32(args[0]) : null;
 

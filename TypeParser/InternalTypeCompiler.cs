@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using AdventOfCode2022.Utils;
+using AdventOfCode2018.Utils;
 using JetBrains.Annotations;
 using TypeParser.Matchers;
 using TypeParser.UtilityClasses;

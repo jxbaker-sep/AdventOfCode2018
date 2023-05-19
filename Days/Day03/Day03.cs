@@ -1,45 +1,81 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using AdventOfCode2022.Utils;
+using System.Text.RegularExpressions;
+using AdventOfCode2018.Utils;
 using JetBrains.Annotations;
+using TypeParser;
 
-namespace AdventOfCode2022.Days.Day03;
+namespace AdventOfCode2018.Days.Day03;
 
 [UsedImplicitly]
-public class Day03 : AdventOfCode<long,List<string>>
+public class Day03 : AdventOfCode<long, IReadOnlyList<Claim>>
 {
-    public override List<string> Parse(string input) => input
-        .Lines();
+    public override IReadOnlyList<Claim> Parse(string input) => input
+        .Lines()
+        .Select(line => {
+            var m =Regex.Match(line, @"#(?<id>\d+) @ (?<x>\d+),(?<y>\d+): (?<width>\d+)x(?<height>\d+)");
+            return new Claim(m.LongGroup("id"), m.LongGroup("x"), m.LongGroup("y"), m.LongGroup("width"), m.LongGroup("height"));
+        })
+        .ToList();
 
-    [TestCase(Input.Example, 157)]
-    [TestCase(Input.File, 8085)]
-    public override long Part1(List<string> input)
+    [TestCase(Input.Example, 4)]
+    [TestCase(Input.File, 112418)]
+    public override long Part1(IReadOnlyList<Claim> input)
     {
-        return input
-            .Select(line => Priority(
-                line.Substring(0, line.Length / 2)
-                    .Intersect(line.Substring(line.Length / 2))
-                    .Single()
-            ))
-            .Sum();
+        var d = new Dictionary<Position, long>();
+        foreach(var claim in input)
+        {
+            foreach(var dx in Enumerable.Range(0, (int)claim.Width))
+            {
+                foreach(var dy in Enumerable.Range(0, (int)claim.Height))
+                {
+                    var p = new Position(claim.Y + dy, claim.X + dx);
+                    d[p] = d.GetValueOrDefault(p) + 1;
+                }
+            }
+        }
+        return d.Count(kv => kv.Value > 1);
     }
 
-    [TestCase(Input.Example, 70)]
-    [TestCase(Input.File, 2515)]
-    public override long Part2(List<string> input)
+    [TestCase(Input.Example, 3)]
+    [TestCase(Input.File, 560)]
+    public override long Part2(IReadOnlyList<Claim> input)
     {
-        return input.InGroupsOf(3)
-            .Select(group => Priority(
-                group[0].Intersect(group[1])
-                    .Intersect(group[2])
-                    .Single()
-            ))
-            .Sum();
+        var d = new Dictionary<Position, long>();
+        foreach(var claim in input)
+        {
+            foreach(var dx in Enumerable.Range(0, (int)claim.Width))
+            {
+                foreach(var dy in Enumerable.Range(0, (int)claim.Height))
+                {
+                    var p = new Position(claim.Y + dy, claim.X + dx);
+                    d[p] = d.GetValueOrDefault(p) + 1;
+                }
+            }
+        }
+
+        foreach(var claim in input)
+        {
+            if (CheckClaim(claim, d)) return claim.Id;
+            
+        }
+        throw new ApplicationException();
     }
 
-    private long Priority(char v)
+    private bool CheckClaim(Claim claim, Dictionary<Position, long> d)
     {
-        if (v is >= 'a' and <= 'z') return v - 'a' + 1;
-        return v - 'A' + 27;
+        foreach(var dx in Enumerable.Range(0, (int)claim.Width))
+        {
+            foreach(var dy in Enumerable.Range(0, (int)claim.Height))
+            {
+                var p = new Position(claim.Y + dy, claim.X + dx);
+                if (d[p] != 1) return false;
+            }
+        }
+
+        return true;
     }
 }
+
+public record Claim(long Id, long X, long Y, long Width, long Height);

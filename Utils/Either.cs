@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AdventOfCode2022.Utils
+namespace AdventOfCode2018.Utils
 {
     public interface IEither<T1, T2>
     {

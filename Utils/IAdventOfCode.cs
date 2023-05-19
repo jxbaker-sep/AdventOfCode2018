@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 
-namespace AdventOfCode2022.Utils
+namespace AdventOfCode2018.Utils
 {
     public interface IAdventOfCode
     {
